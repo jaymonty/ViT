@@ -48,7 +48,7 @@ This repo trains a compact **Vision Transformer (ViT)** with **SimCLR** on **6-c
 ---
 
 ## Repo Structure
-```text
+
 augmentations.py      # RF-aware augs (seedable) + SpecAugment time/freq masks
 data_loader.py        # ClearML dataset loader, dual-view SimCLR wrapper, DataLoaders
 dataset.py            # (H,W) -> RGB tensors; returns [6,H,W] (train: two views; eval: one)
@@ -57,6 +57,86 @@ utils.py              # CFG (hyperparams), determinism helpers
 # training notebook / script  # main loop, probes, UMAP, ClearML logging
 
 
+## Configuration
+
+Edit in `utils.py`.
+
+| Group        | Key               | Default | Notes                                                    |
+|-------------:|:------------------|:-------:|:---------------------------------------------------------|
+| **Model**    | `IMAGE_SIZE`      | 252     | With `PATCH_SIZE=14` → **18×18 = 324** tokens            |
+|              | `PATCH_SIZE`      | 14      | Attention cost ∝ `(N+1)^2`                              |
+|              | `EMBED_DIM`       | 128     | ViT width                                                |
+|              | `DEPTH`           | 6       | ViT layers                                               |
+|              | `NUM_HEADS`       | 4       | MHSA heads                                               |
+| **Projector**| `HIDDEN_DIM`      | 512     | MLP hidden                                               |
+|              | `PROJECTION_DIM`  | 128     | Output dim for SimCLR                                    |
+| **SimCLR**   | `TEMPERATURE`     | 0.015   | Lower = sharper logits (watch collapse)                  |
+| **MAE**      | `LAMBDA_MAE`      | 0.01    | Set **0** to disable                                     |
+| **Train**    | `EPOCHS`          | 150     |                                                          |
+|              | `BATCH_SIZE`      | 256     |                                                          |
+|              | `NUM_WORKERS`     | 10      | Set **0** for strict determinism                         |
+| **Optimizer**| `BASE_LR`         | 1e-2    | AdamW                                                    |
+|              | `ENCODER_LR`      | 1e-3    | 0.1 × BASE_LR                                            |
+|              | `PROJECTOR_LR`    | 1e-2    | 1.0 × BASE_LR                                            |
+| **Scheduler**| `ETA_MIN`         | 1e-6    | Cosine anneal target                                     |
+
+---
+
+## Augmentations (RF-aware)
+
+Implemented in `augmentations.py`.
+
+- **Spatial / appearance**
+  - `RandomResizedCrop`, `RandomHorizontalFlip`, `RandomVerticalFlip`*
+  - `add_noise(std=0.05)`, brightness/contrast jitter
+  - `GaussianBlur`, `RandomErasing`, `Normalize(mean=0.5, std=0.5)` per channel
+- **SpecAugment (tensors)**
+  - `time_mask` (zero columns) ~ **10%** width × **2**
+  - `freq_mask` (zero rows) ~ **10%** height × **2**
+- **Determinism**
+  - Pass a `torch.Generator` into `RFSimCLRAug`; the pipeline reseeds Python/NumPy/Torch per call.
+  - Dual-view dataset **clones** the generator so views are different but reproducible.
+
+> [!WARNING]
+> **Vertical (frequency) flip is aggressive.** Disable if absolute frequency is part of class identity.
+
+---
+
+## Evaluation
+
+- **Probes:** Logistic Regression (linear) & 1-layer **MLP** on **clean** eval loaders (no augs)
+- **Clustering:** **Silhouette** (↑) and **Davies–Bouldin** (↓)
+- **Visualization:** **UMAP** (cosine), logged to ClearML (or save as `docs/umap.png`)
+- **Collapse check:** `z_var_mean` on **L2-normalized** CLS embeddings (often logged ×1e4 for readability)
+
+---
+
+## Reproducibility
+
+- Global seeding (`set_seed`): Python/NumPy/Torch; deterministic algorithms; **TF32/Flash SDP off**
+- DataLoader: supply a `generator` and `worker_init_fn` to seed each worker
+- Augmentations: per-call `torch.Generator` reseeds torchvision ops
+
+> [!TIP]
+> For bit-stable runs, set `NUM_WORKERS=0`. For throughput, keep workers > 0 and accept tiny nondeterminism in I/O.
+
+---
+
+## Results (placeholders)
+
+| Metric             | Value |
+|-------------------:|:-----:|
+| Linear Acc         | **__** |
+| Linear Macro-F1    | **__** |
+| MLP Acc            | **__** |
+| MLP Macro-F1       | **__** |
+| Silhouette (↑)     | **__** |
+| Davies–Bouldin (↓) | **__** |
+
+Add a UMAP once you have it:
+
+```md
+![UMAP embeddings](docs/umap.png)
 
 
 
@@ -64,99 +144,4 @@ utils.py              # CFG (hyperparams), determinism helpers
 
 
 
-#=======================
 
-
-
-
-
-
-
-RF Fingerprinting with SimCLR + ViT (+ MAE)
-
-Learn robust embeddings for drone RF emissions from passive spectrum data—no labels required.
-This repo trains a compact Vision Transformer (ViT) with SimCLR on 6-channel inputs (RGB spectrogram + RGB persistence). A lightweight MAE head optionally regularizes early training. Everything is deterministic (seedable) and instrumented with ClearML.
-
-<p align="center"><i>Self-supervised representations that cluster by device type and hold up across noise, gain, and minor time/frequency shifts.</i></p>
-TL;DR
-
-Data: two grayscale planes per sample (spectrogram, persistence) → each converted to RGB and stacked ⇒ [6, H, W].
-
-Augs: RandomResizedCrop, flips, jitter, blur, random erasing + SpecAugment (time/freq masks). All seedable.
-
-Model: ViT encoder (D=128, L=6, H=4) with projection MLP (BN-ReLU-BN). Optional MAE reconstructs masked pixels.
-
-Training: SimCLR on two augmented views; optional MAE on one view. Early stop & temperature tweaks to avoid collapse.
-
-Eval: Linear/MLP probes, Silhouette/DB, UMAP. ClearML logs + best-F1 checkpoints.
-
-Highlights
-
-6-channel aware pipeline (spectrogram RGB ×3 + persistence RGB ×3).
-
-Deterministic data path: per-call torch.Generator and seeded torchvision ops.
-
-RF-aware augmentations: SpecAugment time/freq masks after normalization.
-
-Compact ViT for edge-friendliness; projector dropped at inference.
-
-MAE regularizer (masked pixel MSE) you can anneal to 0 mid-training.
-
-Repo Structure
-augmentations.py     # RF-aware augs (seedable) + SpecAugment
-data_loader.py       # ClearML dataset loader, dual-view SimCLR dataset, DataLoaders
-dataset.py           # (H,W) → RGB → Tensor; returns [6,H,W] (train: two views; eval: one)
-transformer_model.py # PatchEmbed + ViTEncoder + ProjectionHead + MAE module
-utils.py             # CFG + global hyperparams & determinism helpers
-# training notebook / script  # main loop, probes, eval, ClearML logging
-
-Data Format
-
-Expected files (from ClearML dataset or local folder):
-spectrograms.npy          # shape: (N, H, W), grayscale
-persistence_spectra.npy   # shape: (N, H, W), grayscale
-labels.npy                # shape: (N,), optional
-label_encoder.npz         # contains 'classes' for original label names
-metadata.npz              # optional extra metadata
-
-During loading we:
-Merge label aliases (p4/p4L → Phantom),
-Exclude undesired classes (e.g., Background_RF, Phantom_drone),
-Re-encode labels to a fresh canonical set (reported as class_names).
-
-Configuration (edit in utils.py)
-
-Key knobs:
-Image/Patch: IMAGE_SIZE=252, PATCH_SIZE=14 → N=18×18=324 tokens.
-Model: EMBED_DIM=128, DEPTH=6, NUM_HEADS=4.
-Projector: HIDDEN_DIM=512, PROJECTION_DIM=128.
-Training: EPOCHS, BATCH_SIZE, NUM_WORKERS.
-SimCLR: TEMPERATURE=0.015.
-MAE blend: LAMBDA_MAE=0.01 (set to 0 to disable).
-LRs: lower encoder LR, higher projector LR (AdamW).
-
-Augmentations (RF-aware)
-Implemented in augmentations.py:
-Spatial/appearance: RandomResizedCrop, H/V flips*, brightness/contrast jitter, Gaussian blur, Random Erasing, Normalize.
-SpecAugment: time_mask (columns), freq_mask (rows), ~10% width/height ×2.
-Determinism: per-call torch.Generator reseeds Python/NumPy/Torch; dual-view dataset clones the generator so views are reproducible-but-different.
-
-Evaluation
-Linear probe (LogReg) & MLP probe on clean eval loaders (no augs).
-Clustering: Silhouette (↑), Davies–Bouldin (↓).
-Visualization: UMAP (cosine) logged to ClearML.
-Collapse check: z_var_mean on L2-normalized CLS embeddings (report scaled).
-
-Reproducibility
-Global seeding (set_seed): Python/NumPy/Torch; deterministic algorithms; TF32/Flash SDP off.
-DataLoader generator + worker_init_fn to seed workers.
-Aug pipeline accepts generator and reseeds torchvision ops per call.
-
-Results:
-
-
-Customize
-Turn MAE off: set LAMBDA_MAE=0.0.
-Soften augs: reduce mask counts/width, lower erase prob, disable V-flip.
-Sharpen contrastive: lower TEMPERATURE slightly (watch for collapse).
-Scale model: bump EMBED_DIM/DEPTH; track attention cost ∝ (N+1)^2.
