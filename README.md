@@ -54,7 +54,7 @@ data_loader.py        # ClearML dataset loader, dual-view SimCLR wrapper, DataLo
 dataset.py            # (H,W) -> RGB tensors; returns [6,H,W] (train: two views; eval: one)
 transformer_model.py  # PatchEmbed + ViTEncoder (CLS) + ProjectionHead + MAE module
 utils.py              # CFG (hyperparams), determinism helpers
-# training notebook / script  # main loop, probes, UMAP, ClearML logging
+training notebook / script  # main loop, probes, UMAP, ClearML logging
 
 
 ## Configuration
