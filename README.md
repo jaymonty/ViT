@@ -7,7 +7,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](#)
 [![PyTorch](https://img.shields.io/badge/pytorch-2.x-red.svg)](#)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](#)
+
 
 ---
 
@@ -114,8 +114,7 @@ Implemented in `augmentations.py`.
 - DataLoader: supply a `generator` and `worker_init_fn` to seed each worker
 - Augmentations: per-call `torch.Generator` reseeds torchvision ops
 
-> [!TIP]
-> For bit-stable runs, set `NUM_WORKERS=0`. For throughput, keep workers > 0 and accept tiny nondeterminism in I/O.
+
 
 ---
 
@@ -123,12 +122,12 @@ Implemented in `augmentations.py`.
 
 | Metric             | Value |
 |-------------------:|:-----:|
-| Linear Acc         | **__** |
-| Linear Macro-F1    | **__** |
-| MLP Acc            | **__** |
-| MLP Macro-F1       | **__** |
-| Silhouette (↑)     | **__** |
-| Davies–Bouldin (↓) | **__** |
+| Linear Acc         | **99.31%** |
+| Linear Macro-F1    | **91.01%** |
+| MLP Acc            | **98.75%** |
+| MLP Macro-F1       | **82.10%** |
+| Silhouette (↑)     | **0.8018** |
+| Davies–Bouldin (↓) | **5.85** |
 
 Add a UMAP once you have it:
 
