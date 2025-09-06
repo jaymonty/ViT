@@ -118,7 +118,7 @@ Implemented in `augmentations.py`.
 
 ---
 
-## Results (placeholders)
+## Results 
 
 | Metric             | Value |
 |-------------------:|:-----:|
@@ -131,7 +131,7 @@ Implemented in `augmentations.py`.
 
 Add a UMAP once you have it:
 
-md
+
 ![UMAP embeddings](docs/UMAP.jpg)
 
 
