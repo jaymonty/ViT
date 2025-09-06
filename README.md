@@ -129,7 +129,7 @@ Implemented in `augmentations.py`.
 | Silhouette (↑)     | **0.8018** |
 | Davies–Bouldin (↓) | **5.85** |
 
-Add a UMAP once you have it:
+UMAP:
 
 
 ![UMAP embeddings](docs/UMAP.jpg)
