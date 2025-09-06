@@ -131,7 +131,7 @@ Implemented in `augmentations.py`.
 
 Add a UMAP once you have it:
 
-```md
+md
 ![UMAP embeddings](docs/UMAP.jpg)
 
 
