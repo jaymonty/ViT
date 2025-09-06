@@ -19,11 +19,7 @@
 - [Augmentations (RF-aware)](#augmentations-rf-aware)
 - [Evaluation](#evaluation)
 - [Reproducibility](#reproducibility)
-- [Results (placeholders)](#results-placeholders)
-- [Troubleshooting](#troubleshooting)
-- [FAQ](#faq)
-- [License](#license)
-
+- [Results](#results)
 ---
 
 ## Overview
