@@ -1,5 +1,77 @@
 # ViT
 
+
+# RF Fingerprinting with **SimCLR + ViT** (+ MAE)
+
+*Self-supervised embeddings for drone RF emissions from passive spectrum data.*
+
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](#)
+[![PyTorch](https://img.shields.io/badge/pytorch-2.x-red.svg)](#)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](#)
+
+---
+
+## Table of Contents
+- [Overview](#overview)
+- [Highlights](#highlights)
+- [Repo Structure](#repo-structure)
+- [Data Format](#data-format)
+- [Installation](#installation)
+- [Quickstart](#quickstart)
+- [Configuration](#configuration)
+- [Augmentations (RF-aware)](#augmentations-rf-aware)
+- [Evaluation](#evaluation)
+- [Reproducibility](#reproducibility)
+- [Results (placeholders)](#results-placeholders)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
+- [License](#license)
+
+---
+
+## Overview
+This repo trains a compact **Vision Transformer (ViT)** with **SimCLR** on **6-channel inputs** (RGB **spectrogram** + RGB **persistence**). A lightweight **MAE** head optionally regularizes early training. The pipeline is **deterministic** (seedable) and fully **instrumented** with ClearML.
+
+> [!TIP]
+> Six channels = 3 for spectrogram (RGB) + 3 for persistence (RGB) → tensor shape **[6, H, W]**.
+
+---
+
+## Highlights
+- **6-channel aware** data path (spectrogram RGB ×3 + persistence RGB ×3).
+- **Deterministic** augmentations: per-call `torch.Generator` reseeds Python/NumPy/Torch.
+- **RF-aware augs** incl. **SpecAugment** (time/freq masks) on tensors.
+- **Compact ViT** (`D=128`, `L=6`, `H=4`) — edge-friendly; projector dropped at inference.
+- **MAE** regularizer (masked pixel MSE) you can anneal to **0** mid-training.
+- Clear **probes & metrics**: linear/MLP, Silhouette/DB, UMAP visualization.
+
+---
+
+## Repo Structure
+```text
+augmentations.py      # RF-aware augs (seedable) + SpecAugment time/freq masks
+data_loader.py        # ClearML dataset loader, dual-view SimCLR wrapper, DataLoaders
+dataset.py            # (H,W) -> RGB tensors; returns [6,H,W] (train: two views; eval: one)
+transformer_model.py  # PatchEmbed + ViTEncoder (CLS) + ProjectionHead + MAE module
+utils.py              # CFG (hyperparams), determinism helpers
+# training notebook / script  # main loop, probes, UMAP, ClearML logging
+
+
+
+
+
+
+
+
+
+#=======================
+
+
+
+
+
+
+
 RF Fingerprinting with SimCLR + ViT (+ MAE)
 
 Learn robust embeddings for drone RF emissions from passive spectrum data—no labels required.
