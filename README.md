@@ -49,12 +49,12 @@ This repo trains a compact **Vision Transformer (ViT)** with **SimCLR** on **6-c
 
 ## Repo Structure
 
-augmentations.py      # RF-aware augs (seedable) + SpecAugment time/freq masks
-data_loader.py        # ClearML dataset loader, dual-view SimCLR wrapper, DataLoaders
-dataset.py            # (H,W) -> RGB tensors; returns [6,H,W] (train: two views; eval: one)
-transformer_model.py  # PatchEmbed + ViTEncoder (CLS) + ProjectionHead + MAE module
-utils.py              # CFG (hyperparams), determinism helpers
-training notebook / script  # main loop, probes, UMAP, ClearML logging
+- augmentations.py      # RF-aware augs (seedable) + SpecAugment time/freq masks
+- data_loader.py        # ClearML dataset loader, dual-view SimCLR wrapper, DataLoaders
+- dataset.py            # (H,W) -> RGB tensors; returns [6,H,W] (train: two views; eval: one)
+- transformer_model.py  # PatchEmbed + ViTEncoder (CLS) + ProjectionHead + MAE module
+- utils.py              # CFG (hyperparams), determinism helpers
+- training notebook / script  # main loop, probes, UMAP, ClearML logging
 
 
 ## Configuration
